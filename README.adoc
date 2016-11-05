@@ -1,0 +1,9 @@
+= weechat-gnome-screensaver-away
+
+Set away status in weechat based on GNOME ScreenSaver status.
+
+The current implementation expects the dbus-python library to be
+ installed, which it uses to query the status of the GNOME ScreenSaver
+ every 5 seconds.  A future iteration could maybe listen for the D-Bus
+ signals related to this state change, rather than continuously
+ polling.
