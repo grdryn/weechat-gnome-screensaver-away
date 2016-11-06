@@ -23,13 +23,14 @@
 # Contributions welcome at:
 # https://github.com/grdryn/weechat-gnome-screensaver-away
 
+from __future__ import print_function
+
 try:
     import dbus
     import weechat
 except ImportError:
     print('This program is intended to be run by weechat, and expects the')
     print('dbus-python library to be installed.')
-    quit()
 
 SCRIPT_NAME    = 'gnome-screensaver-away'
 SCRIPT_AUTHOR  = 'Gerard Ryan <gerard@ryan.lt>'
