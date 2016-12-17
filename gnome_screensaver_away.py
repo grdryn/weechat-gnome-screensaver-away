@@ -41,22 +41,30 @@ SCRIPT_DESC    = 'Set away status based on GNOME ScreenSaver status'
 SCREENSAVER = dbus.SessionBus().get_object('org.gnome.ScreenSaver',
                                            '/org/gnome/ScreenSaver')
 
-# TODO: Figure out how to query weechat for the away status instead of
-# storing in a global variable?
-away = False
+AWAY_MSG = 'I am away'
+
+# TODO: track the away status of each IRC server independently
+def check_away_status():
+    away = (False, False)
+    irc_servers = weechat.infolist_get("irc_server", "", "")
+
+    while weechat.infolist_next(irc_servers):
+        is_away = bool(weechat.infolist_integer(irc_servers, "is_away"))
+        is_away_by_me = weechat.infolist_string(irc_servers, "away_message") == AWAY_MSG
+        away = (is_away, is_away_by_me)
+
+    return away
 
 def check_screensaver_status(data, remaining_calls):
-    global away
+    away, auto_away = check_away_status()
 
     screensaver_on = SCREENSAVER.GetActive(
         dbus_interface='org.gnome.ScreenSaver')
 
     if screensaver_on and not away:
-        weechat.command('', '/away -all I am away')
-        away = True
-    elif away and not screensaver_on:
+        weechat.command('', '/away -all {0}'.format(AWAY_MSG))
+    elif away and auto_away and not screensaver_on:
         weechat.command('', '/away -all')
-        away = False
 
     return weechat.WEECHAT_RC_OK
 
