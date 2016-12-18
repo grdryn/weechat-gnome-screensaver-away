@@ -20,6 +20,9 @@
 # 2016-11-05: Gerard Ryan <gerard@ryan.lt>
 #     0.1.0 : Initial version
 #
+# 2016-12-17: Gerard Ryan <gerard@ryan.lt>
+#     0.2.0 : Prevent changing manually-set away status
+#
 # Contributions welcome at:
 # https://github.com/grdryn/weechat-gnome-screensaver-away
 
