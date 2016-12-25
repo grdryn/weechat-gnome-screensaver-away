@@ -21,7 +21,8 @@
 #     0.1.0 : Initial version
 #
 # 2016-12-17: Gerard Ryan <gerard@ryan.lt>
-#     0.2.0 : Prevent changing manually-set away status
+#     0.2.0 : - Prevent changing manually-set away status
+#             - Allow configuration of message and poll time
 #
 # Contributions welcome at:
 # https://github.com/grdryn/weechat-gnome-screensaver-away
@@ -37,24 +38,41 @@ except ImportError:
 
 SCRIPT_NAME    = 'gnome-screensaver-away'
 SCRIPT_AUTHOR  = 'Gerard Ryan <gerard@ryan.lt>'
-SCRIPT_VERSION = '0.1.0'
+SCRIPT_VERSION = '0.2.0'
 SCRIPT_LICENSE = 'GPLv3+'
 SCRIPT_DESC    = 'Set away status based on GNOME ScreenSaver status'
 
 SCREENSAVER = dbus.SessionBus().get_object('org.gnome.ScreenSaver',
                                            '/org/gnome/ScreenSaver')
 
-AWAY_MSG = 'I am away'
+def set_default_configuration(away_msg, poll_interval):
+    if not weechat.config_get_plugin('away_msg'):
+        weechat.config_set_plugin('away_msg', away_msg)
+    if not weechat.config_get_plugin('poll_interval'):
+        weechat.config_set_plugin('poll_interval', str(poll_interval))
 
-# TODO: track the away status of each IRC server independently
+def get_poll_interval_safely():
+    poll_interval = 5000 # default
+
+    try:
+        poll_interval = int(weechat.config_get_plugin('poll_interval'))
+    except ValueError:
+        weechat.println('poll_interval is not an int, falling back to default')
+
+    return poll_interval
+
+# TODO: Try to track the away status of each IRC server independently?
 def check_away_status():
     away = (False, False)
     irc_servers = weechat.infolist_get("irc_server", "", "")
 
     while weechat.infolist_next(irc_servers):
-        is_away = bool(weechat.infolist_integer(irc_servers, "is_away"))
-        is_away_by_me = weechat.infolist_string(irc_servers, "away_message") == AWAY_MSG
-        away = (is_away, is_away_by_me)
+        auto_away_msg    = weechat.config_get_plugin('away_msg')
+        current_away_msg = weechat.infolist_string(irc_servers, "away_message")
+
+        is_away_by_me = current_away_msg == auto_away_msg
+        is_away       = bool(weechat.infolist_integer(irc_servers, "is_away"))
+        away          = (is_away, is_away_by_me)
 
     return away
 
@@ -65,7 +83,8 @@ def check_screensaver_status(data, remaining_calls):
         dbus_interface='org.gnome.ScreenSaver')
 
     if screensaver_on and not away:
-        weechat.command('', '/away -all {0}'.format(AWAY_MSG))
+        weechat.command('', '/away -all {0}'.format(
+            weechat.config_get_plugin('away_msg')))
     elif away and auto_away and not screensaver_on:
         weechat.command('', '/away -all')
 
@@ -75,4 +94,7 @@ if __name__ == '__main__':
     weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
                  SCRIPT_DESC, '', '')
 
-    weechat.hook_timer(5000, 0, 0, 'check_screensaver_status', '')
+    set_default_configuration('I am away', 5000)
+
+    poll_interval = get_poll_interval_safely()
+    weechat.hook_timer(poll_interval, 0, 0, 'check_screensaver_status', '')
