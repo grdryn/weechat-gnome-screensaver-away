@@ -57,7 +57,7 @@ def get_poll_interval_safely():
     try:
         poll_interval = int(weechat.config_get_plugin('poll_interval'))
     except ValueError:
-        weechat.println('poll_interval is not an int, falling back to default')
+        weechat.prnt('', 'poll_interval is not an int, falling back to default')
 
     return poll_interval
 
