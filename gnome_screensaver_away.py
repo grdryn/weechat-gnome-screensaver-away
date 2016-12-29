@@ -23,6 +23,7 @@
 # 2016-12-17: Gerard Ryan <gerard@ryan.lt>
 #     0.2.0 : - Prevent changing manually-set away status
 #             - Allow configuration of message and poll time
+#             - Tolerate gnome-shell crashes
 #
 # Contributions welcome at:
 # https://github.com/grdryn/weechat-gnome-screensaver-away
@@ -41,9 +42,6 @@ SCRIPT_AUTHOR  = 'Gerard Ryan <gerard@ryan.lt>'
 SCRIPT_VERSION = '0.2.0'
 SCRIPT_LICENSE = 'GPLv3+'
 SCRIPT_DESC    = 'Set away status based on GNOME ScreenSaver status'
-
-SCREENSAVER = dbus.SessionBus().get_object('org.gnome.ScreenSaver',
-                                           '/org/gnome/ScreenSaver')
 
 def set_default_configuration(away_msg, poll_interval):
     if not weechat.config_get_plugin('away_msg'):
@@ -79,7 +77,9 @@ def check_away_status():
 def check_screensaver_status(data, remaining_calls):
     away, auto_away = check_away_status()
 
-    screensaver_on = SCREENSAVER.GetActive(
+    screensaver = dbus.SessionBus().get_object(
+        'org.gnome.ScreenSaver', '/org/gnome/ScreenSaver')
+    screensaver_on = screensaver.GetActive(
         dbus_interface='org.gnome.ScreenSaver')
 
     if screensaver_on and not away:
