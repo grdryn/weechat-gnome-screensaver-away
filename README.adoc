@@ -3,7 +3,28 @@
 Set away status in weechat based on GNOME ScreenSaver status.
 
 The current implementation expects the dbus-python library to be
- installed, which it uses to query the status of the GNOME ScreenSaver
- every 5 seconds.  A future iteration could maybe listen for the D-Bus
+ installed, which it uses to query the status of the GNOME
+ ScreenSaver.  A future iteration could maybe listen for the D-Bus
  signals related to this state change, rather than continuously
  polling.
+
+== Configuration options
+
+This script reads two optional config options:
+
+=== away_msg
+
+Default: `I am away.`
+
+This is the string to set as the away message as set by this
+ script. It is used when setting the away status, and also when trying
+ to determine if the currently set away message was set by this script
+ or manually.
+
+=== poll_interval
+
+Default: 5000
+
+This is the interval in milliseconds between calls by weechat to the
+ `check_screensaver_status` function, which is what calls out to GNOME
+ ScreenSaver over the DBus API.
